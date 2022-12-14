@@ -10,7 +10,7 @@ module.exports = async function(job, done) {
                 { lastChecked: { $lt: new Date(new Date().getTime() - 60 * 60 * 24 * 1000) } },
                 { lastChecked: { $exists: false } }
             ]
-        }).limit(1);
+        }).sort('lastChecked').limit(3);
         if(categories){
             try {
                 for(const category of categories){

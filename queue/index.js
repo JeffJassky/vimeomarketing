@@ -2,6 +2,8 @@ const { Agenda } = require("agenda/es");
 
 console.debug('Agenda attempting to connect to mongo', process.env.MONGODB_URI);
 
+
+
 const queue = new Agenda({
     db: { address: process.env.MONGODB_URI },
     processEvery: '5 seconds',
@@ -27,7 +29,7 @@ module.exports = queue;
         'channel-fetchNextPage': require('./processor/channel-fetchNextPage'),
         'channel-queueFetchNextPage': require('./processor/channel-queueFetchNextPage'),
         'category-fetchNextPage': require('./processor/category-fetchNextPage'),
-        'category-queueFetchNextPage': require('./processor/category-queueFetchNextPage'),
+        'category-queueFetchNextPage': require('./processor/category-queueFetchNextPage')
     };
 
     // ==========================
@@ -41,12 +43,13 @@ module.exports = queue;
     // RECURRING QUEUE JOBS
     // ==========================
 
-    // queue.create("search-queue").repeatEvery("1 minute").save();
-    // queue.create("search-execute").repeatEvery("1 minute").save();
 
-      queue.every('1 minute', 'searchResult-queue');
-      queue.every('1 minute', 'channel-queueFetchNextPage');
-      queue.every('1 minute', 'category-queueFetchNextPage');
+      queue.every('1 minute', [
+          'search-queue',
+          'searchResult-queue',
+          'channel-queueFetchNextPage',
+          'category-queueFetchNextPage'
+      ]);
 
     // Start the queue.
     await queue.start();

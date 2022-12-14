@@ -27,6 +27,8 @@ module.exports = async function(job, done){
         if(searches.length){
             console.log(`Adding ${searches.length} searches`);
             await SearchModel.insertMany(searches);
+        } else {
+            console.log(`No new searches to add. ${existingSearches.length} searches already exist ${segments.length} segments and ${locations.length} locations`);
         }
 
         // Requeue old hanging jobs

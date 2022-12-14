@@ -24,7 +24,7 @@ module.exports = baseModel({
     perPage: {
       type: Number,
       required: true,
-      default: 25
+      default: 50
     },
     lastPage: {
       type: Number
@@ -74,9 +74,9 @@ module.exports = baseModel({
             console.log('Video already exists in system', existingVideo.uri);
           }
         }
-        if(this.perPage == 100){
+        if(this.perPage == 25){
           this.perPage = 50;
-          this.currentPage = Math.floor(this.nextPage * 2)
+          this.currentPage = Math.floor(this.nextPage / 2)
         }else{
           this.perPage = videos.per_page;
         }

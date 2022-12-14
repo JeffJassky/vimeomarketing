@@ -1,6 +1,10 @@
 const baseModel = require('./base.model');
 const mongoose = require('mongoose');
 
+
+const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/g;
+const phoneRegex = /^(1\s?)?(\d{3}|\(\d{3}\))[\s\-]?\d{3}[\s\-]?\d{4}$/g;
+
 module.exports = baseModel({
   name: 'SearchResult',
   data:{
@@ -62,6 +66,40 @@ module.exports = baseModel({
     status: {
       type: String,
       default: "queued"
+    }
+  },
+  computed: {
+    emails(){
+      return String(this.text).match(emailRegex);
+    },
+    phones(){
+      return String(this.text).match(phoneRegex)
+    }
+  },
+  statics: {
+    async index(){
+      try{
+        const scoreThreshold = 50;
+        console.log('results');
+
+        const emails = [];
+        (await this.find({
+          "segmentScore.total": {
+            $gt: scoreThreshold
+          }
+        }).select('-html'))
+            .forEach(record => {
+              if(record.emails){
+                emails.push(...record.emails);
+              }
+            });
+        console.log('emlen', emails.length);
+
+        return [...new Set(emails)];
+      } catch (e) {
+        console.log(e);
+        return [];
+      }
     }
   }
 });

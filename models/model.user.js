@@ -90,6 +90,9 @@ module.exports = baseModel({
     name: {
       type: String
     },
+    description: {
+      type: String
+    },
     link: {
       type: String
     },
@@ -102,19 +105,16 @@ module.exports = baseModel({
     bio: {
       type: String
     },
+    shortBio: {
+      type: String
+    },
     websites: {
       type: Object
     }
   },
   validate(next){
     if(this.isNew){
-      this.uri = this.raw.uri;
-      this.name = this.raw.name;
-      this.link = this.raw.link;
-      this.location = this.raw.location;
-      this.gender = this.raw.gender;
-      this.bio = this.raw.bio;
-      this.websites = this.raw.websites;
+        this.compressRaw();
     }
     next();
   },
@@ -127,8 +127,8 @@ module.exports = baseModel({
       if(this.bio){
         (this.bio.match(emailRegex) || []).forEach(email => emails.add(email))
       }
-      if(this.raw.short_bio){
-        (this.raw.short_bio.match(emailRegex) || []).forEach(email => emails.add(email))
+      if(this.short_bio){
+        (this.short_bio.match(emailRegex) || []).forEach(email => emails.add(email))
       }
       if(emails.size > 0){
         return Array.from(emails);
@@ -142,8 +142,8 @@ module.exports = baseModel({
       if(this.bio){
         (this.bio.match(urlRegex) || []).forEach(site => foundUrls.push(site))
       }
-      if(this.raw.short_bio){
-        (this.raw.short_bio.match(urlRegex) || []).forEach(site => foundUrls.push(site))
+      if(this.short_bio){
+        (this.short_bio.match(urlRegex) || []).forEach(site => foundUrls.push(site))
       }
       if(foundUrls.length > 0){
         foundUrls.forEach(foundUrl => {
@@ -179,8 +179,8 @@ module.exports = baseModel({
       if(this.bio){
         searchStrings.push(this.bio)
       }
-      if(this.raw.short_bio){
-        searchStrings.push(this.raw.short_bio)
+      if(this.short_bio){
+        searchStrings.push(this.short_bio)
       }
       if(this.credits){
         Array.prototype.push.apply(searchStrings, this.credits.map(credit => credit.role || ''));
@@ -195,6 +195,30 @@ module.exports = baseModel({
     }
   },
   methods: {
+    async compressRaw(){
+      if(this.raw && this.raw.uri) {
+        this.uri = this.raw.uri;
+        this.name = this.raw.name;
+        this.link = this.raw.link;
+        this.location = this.raw.location;
+        this.gender = this.raw.gender;
+        this.bio = this.raw.bio;
+        this.shortBio = this.raw.short_bio;
+        this.websites = this.raw.websites;
+        this.description = this.raw.description;
+        try {
+          const raw = {
+            websites: this.raw.websites,
+            location_details: this.raw.location_details,
+            skills: this.raw.skills,
+            picture: this.raw.pictures.sizes[this.raw.pictures.sizes.length-1].link
+          }
+          this.raw = raw;
+        } catch (e) {
+          console.error('Failed to reduce raw video content', e);
+        }
+      }
+    },
     async addCredit(newCredit){
       const existingCreditIndex = this.credits.findIndex(credit => credit.video === newCredit.video);
       if(existingCreditIndex !== -1){
@@ -207,5 +231,21 @@ module.exports = baseModel({
       }
       await this.save();
     }
+  },
+  statics: {
+      async fixUncompressedRaw(){
+          const users = await this.find({ "raw.uri": { $exists: true }});
+          for(const user of users){
+            try{
+              if(user && user.compressRaw){
+                await user.compressRaw();
+                await this.save();
+                console.log('did', user._id);
+              }
+            }catch(e){
+              console.error('Error compressing raw user', user, e);
+            }
+          }
+      }
   }
 });

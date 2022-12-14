@@ -13,6 +13,7 @@ const ChannelsController = require('./controllers/channels');
 const CategoriesController = require('./controllers/categories');
 const VideosController = require('./controllers/videos');
 const UsersController = require('./controllers/users');
+const CoreController = require('./controllers/core');
 
 const express = require('express')
 const app = express()
@@ -37,6 +38,7 @@ app.get('/categories/:categoryName/add', CategoriesController.create)
 app.get('/categories/:categoryName/loadNextPage', CategoriesController.loadNextPage)
 app.get('/emails', UsersController.findEmails)
 app.get('/credits', VideosController.getCredits)
+app.get('/searchResults', CoreController.index("SearchResult"))
 
 const agendash = require('agendash');
 const agenda = require('./queue');
