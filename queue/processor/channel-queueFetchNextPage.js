@@ -5,6 +5,7 @@ module.exports = async function(job, done) {
     console.log('Checking for channels to fetch...');
     try {
         const channels = await ChannelModel.find({
+            enabled: true,
             $or: [
                 { hasNextPage: true },
                 { lastChecked: { $lt: new Date(new Date().getTime() - 60 * 60 * 24 * 1000) } },

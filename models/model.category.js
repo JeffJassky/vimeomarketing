@@ -29,6 +29,10 @@ module.exports = baseModel({
     lastPage: {
       type: Number
     },
+    enabled: {
+      type: Boolean,
+      default: true
+    },
     hasNextPage:{
       type: Boolean,
       default: true

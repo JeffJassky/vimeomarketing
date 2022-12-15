@@ -26,6 +26,10 @@ module.exports = baseModel({
       required: true,
       default: 50
     },
+    enabled: {
+      type: Boolean,
+      default: true
+    },
     lastPage: {
       type: Number
     },
