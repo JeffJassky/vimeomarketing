@@ -5,8 +5,8 @@ module.exports = async function(job, done) {
         const category = await CategoryModel.findById(job.attrs.data.categoryId);
         console.log(`Fetching page ${category.nextPage} of ${category.lastPage} for category ${category.name}...`);
         const results = await category.loadNextPage();
+        await category.save();
         if(results){
-            await category.save();
             delete results.videos;
             console.log(`Category fetch complete`, results);
         }else{

@@ -58,6 +58,7 @@ module.exports = baseModel({
   },
   methods: {
     async loadNextPage() {
+      this.lastChecked = new Date();
       try {
         const videos = await vimeo.request(`/categories/${this.name}/videos?page=${this.nextPage}&per_page=${this.perPage}`);
         for (const video of videos.data) {
@@ -90,7 +91,6 @@ module.exports = baseModel({
           this.lastPage = Math.ceil(this.total / this.perPage);
           this.currentPage = this.nextPage;
           this.hasNextPage = this.currentPage < this.lastPage;
-          this.lastChecked = new Date();
           return {
             name: this.name,
             videos: videos.data,
@@ -103,6 +103,11 @@ module.exports = baseModel({
         }
       } catch (e) {
         console.log(`Error loading category ${this.name} page ${this.nextPage}`, e);
+        if(e && e.error && e.error.code && e.error.error_code === 2286){
+          console.log('We hit the last page of the channel.');
+          // We hit the end of the list.
+          this.hasNextPage = false;
+        }
       }
     }
   }
