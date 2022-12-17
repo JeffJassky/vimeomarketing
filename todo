@@ -1,0 +1,6 @@
+Automatically add website urls found in Vimeo videos anr users to SearchResults table for scraping.
+Behance
+    Create projects collection - only URL required.
+    Create users collection - only username required.
+        System should load project, save a summary, and find all usernames related to the project
+        System should load user profiles, find websites, and add to SearchResults table for scraping.

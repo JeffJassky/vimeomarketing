@@ -1,3 +1,4 @@
 module.exports = {
-  findEmails: require('./findEmails')
+  findEmails: require('./findEmails'),
+  findWebsites: require('./findWebsites'),
 }

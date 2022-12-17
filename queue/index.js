@@ -16,6 +16,10 @@ module.exports = queue;
 (async function(){
 
   queue.on('ready', async () => {
+      if(process.env.DISABLE_QUEUE_PROCESSING){
+          console.log('NOT STARTING QUEUE');
+        return;
+      }
 
     // ==========================
     // IMPORT QUEUE FUNCTIONS

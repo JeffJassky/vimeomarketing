@@ -57,7 +57,7 @@ module.exports = async function(job, done){
                 const contactLinks = await page.evaluate(() => Array
                     .from(document.querySelectorAll('a'))
                     .filter(link => {
-                        return `${link.href} ${link.innerText}`.match(/contact|about|reach/gi) &&
+                        return `${link.href} ${link.innerText}`.match(/contact|about|reach|email|call/gi) &&
                             link.href.match(new RegExp(window.location.hostname, 'gi'))
                     })
                     .map(link => link.href.split('?')[0])

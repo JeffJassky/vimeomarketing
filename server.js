@@ -37,6 +37,7 @@ app.get('/channels/:channelName/loadNextPage', ChannelsController.loadNextPage)
 app.get('/categories/:categoryName/add', CategoriesController.create)
 app.get('/categories/:categoryName/loadNextPage', CategoriesController.loadNextPage)
 app.get('/emails', UsersController.findEmails)
+app.get('/websites', UsersController.findWebsites)
 app.get('/credits', VideosController.getCredits)
 app.get('/searchResults', CoreController.index("SearchResult"))
 

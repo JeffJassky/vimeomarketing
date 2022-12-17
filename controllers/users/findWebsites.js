@@ -3,9 +3,9 @@ module.exports = async function(req, res, next){
 
 
 
-  const emails = [...new Set((await User.find().select('bio shortBio'))
-      .filter(user => user.emailAddresses.length > 0)
-      .map(user => user.emailAddresses)
+  const websites = [...new Set((await User.find().select('bio shortBio'))
+      .filter(user => user.allWebsites.length > 0)
+      .map(user => user.allWebsites.filter(website => website.type==='link').map(website => website.link))
       .flat())];
 
   // const users = (await User.find().select('bio shortBio')
@@ -21,7 +21,8 @@ module.exports = async function(req, res, next){
   //     });
 
   res.send({
-    emailCount: emails.length
+    count: websites.length,
+    websites
   });
   next();
 }
