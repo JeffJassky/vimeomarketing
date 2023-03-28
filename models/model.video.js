@@ -96,6 +96,7 @@ module.exports = baseModel({
       if(!exists){
         const user = new UserModel({raw: this.raw.user});
         await user.addCredit({ video: this.uri })
+        await user.addWebsitesAsSearchResults()
       }
       this.raw.user = this.raw.user.uri;
       await this.save();

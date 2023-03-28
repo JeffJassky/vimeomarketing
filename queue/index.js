@@ -7,7 +7,7 @@ console.debug('Agenda attempting to connect to mongo', process.env.MONGODB_URI);
 const queue = new Agenda({
     db: { address: process.env.MONGODB_URI },
     processEvery: '5 seconds',
-    maxConcurrency: 5,
+    maxConcurrency: 10,
     defaultConcurrency: 1
 });
 
@@ -47,13 +47,12 @@ module.exports = queue;
     // RECURRING QUEUE JOBS
     // ==========================
 
-
-      queue.every('1 minute', [
-          'search-queue',
-          'searchResult-queue',
-          'channel-queueFetchNextPage',
-          'category-queueFetchNextPage'
-      ]);
+    queue.every('1 minute', [
+        'search-queue',
+        'searchResult-queue',
+        'channel-queueFetchNextPage',
+        'category-queueFetchNextPage'
+    ]);
 
     // Start the queue.
     await queue.start();

@@ -165,11 +165,11 @@ schema.statics.getSubscriptionOptionsForRoles = function(roles){
 }
 
 const model = db.model('SystemEventType', schema);
-
-console.log('SYSTEM EVENT SETUP START');
-model.find().then(foundSystemEventTypes => {
-  systemEventTypes = foundSystemEventTypes;
-  console.log(`SYSTEM EVENT SETUP COMPLETE WITH ${systemEventTypes.length} SystemEventTypes`);
-});
+//
+// console.log('SYSTEM EVENT SETUP START');
+// model.find().then(foundSystemEventTypes => {
+//   systemEventTypes = foundSystemEventTypes;
+//   console.log(`SYSTEM EVENT SETUP COMPLETE WITH ${systemEventTypes.length} SystemEventTypes`);
+// });
 
 module.exports = model;

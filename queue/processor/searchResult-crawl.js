@@ -19,7 +19,13 @@ module.exports = async function(job, done){
     if(searchResult){
         searchResult.status = 'processing';
         await searchResult.save();
-        console.log('Crawling:', searchResult.url);
+        let url = searchResult.url;
+
+        if (!/^https?:\/\//i.test(url)) {
+            url = 'http://' + url;
+        }
+
+        console.log('Crawling:', url);
 
         try{
 
@@ -30,24 +36,50 @@ module.exports = async function(job, done){
 
             // Navigate to the Google search page and enter the search term
             console.log('Loading new page');
-            await page.goto(searchResult.url, {waitUntil: 'networkidle0'});
+            await page.goto(url, {waitUntil: 'networkidle0'});
             console.log('Page loaded. Gathering data and taking screen shot.');
 
             // get the page content
             searchResult.html = await page.content();
             searchResult.text = await page.evaluate(() => document.body.innerText);
+            if(!searchResult.title){
+                searchResult.title = await page.evaluate(() => document.title);
+            }
+            if(!searchResult.description){
+                searchResult.description = await page.evaluate(() => {
+                    const meta = document.querySelector('meta[name="description"]');
+                    return meta ? meta.content : '';
+                });
+            }
+
+            if(!searchResult.segmentScore.countVideoTagsOnPage){
+                searchResult.segmentScore.countVideoTagsOnPage = await page.evaluate(() => document.querySelectorAll('video').length);
+            }
+            if(!searchResult.segmentScore.totalVideoDimensionOnScreen){
+                searchResult.segmentScore.totalVideoDimensionOnScreen = await page.evaluate(() => {
+                    let total = 0;
+                    document.querySelectorAll('video').forEach(video => {
+                        total += video.clientWidth * video.clientHeight;
+                    });
+                    return total;
+                });
+            }
+            if(!searchResult.segmentScore.pagesOfVideo && searchResult.segmentScore.totalVideoDimensionOnScreen){
+                searchResult.segmentScore.pagesOfVideo = 1 / (1280 * 800) * searchResult.segmentScore.totalVideoDimensionOnScreen;
+            }
+            console.log('segscore',searchResult.segmentScore);
             searchResult.status = 'crawled';
             await searchResult.save();
 
             // take a screenshot of the page in the searchResults folder with the filenameof the search result ID.
-            await page.screenshot({
-                path: `public/searchResults/${searchResult._id}.webp`,
-                fullPage: true
-            });
+            // await page.screenshot({
+            //     path: `public/searchResults/${searchResult._id}.webp`,
+            //     fullPage: true
+            // });
 
             // scale the screenshot down to be 500 pixels wide
-            await sharp(`public/searchResults/${searchResult._id}.webp`)
-            await resizeFile(`public/searchResults/${searchResult._id}.webp`);
+            // await sharp(`public/searchResults/${searchResult._id}.webp`)
+            // await resizeFile(`public/searchResults/${searchResult._id}.webp`);
 
             let linkCount = 0;
             // If this is a root search result let's search for any other links that look relevant.
@@ -70,6 +102,8 @@ module.exports = async function(job, done){
                         await SearchResultModel.create({
                             url: contactLinks[i],
                             search: searchResult.search,
+                            user: searchResult.user,
+                            video: searchResult.video,
                             searchResult: searchResult._id,
                             location: searchResult.location,
                             segment: searchResult.segment,
@@ -78,6 +112,24 @@ module.exports = async function(job, done){
                         linkCount++;
                     }
                 }
+
+                // check to see if url is a root domain url
+                const urlParts = new URL(url);
+                if(urlParts.pathname !== '/' && urlParts.pathname !== '' && !(await SearchResultModel.exists({url: urlParts.origin}))){
+                    // Add the home page
+                    console.log('Adding home page to crawl')
+                    await SearchResultModel.create({
+                        url: urlParts.origin,
+                        user: searchResult.user,
+                        video: searchResult.video,
+                        search: searchResult.search,
+                        searchResult: searchResult._id,
+                        location: searchResult.location,
+                        segment: searchResult.segment,
+                        status: 'queued'
+                    });
+                }
+
             }
             console.log(`Crawl complete with ${linkCount}`);
             done();

@@ -7,24 +7,24 @@ module.exports = async function(job, done){
 
 
         // Newly created search results
-        // const searchResults = await SearchResultModel.find({
-        //     $or: [
-        //         { status: 'queued' },
-        //         {
-        //             status: 'processing',
-        //             createdAt: { $lt: new Date(new Date().getTime() - 60 * 60 * 1000) }
-        //         }
-        //     ]
-        // });
-        // for(const searchResult of searchResults){
-        //     searchResult.status = 'waiting-to-crawl';
-        //     await searchResult.save();
-        //     queue.now('searchResult-crawl', {searchResultId: searchResult._id});
-        // }
-        // console.log('Queued', searchResults.length, 'search results');
+        const searchResults = await SearchResultModel.find({
+            $or: [
+                { status: 'queued' },
+                {
+                    status: 'processing',
+                    createdAt: { $lt: new Date(new Date().getTime() - 60 * 60 * 1000) }
+                }
+            ]
+        });
+        for(const searchResult of searchResults){
+            searchResult.status = 'waiting-to-crawl';
+            await searchResult.save();
+            queue.now('searchResult-crawl', {searchResultId: searchResult._id});
+        }
+        console.log('Queued', searchResults.length, 'search results');
 
         // Ones to score
-        const crawledSearchResults = await SearchResultModel.find({ status: { $ne: 'fullscored' }}).select('_id');
+        const crawledSearchResults = await SearchResultModel.find({ status: 'crawled'}).select('_id');
 
         for(const searchResult of crawledSearchResults){
             queue.now('searchResult-score', {searchResultId: searchResult._id});

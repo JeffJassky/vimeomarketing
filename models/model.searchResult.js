@@ -1,37 +1,40 @@
 const baseModel = require('./base.model');
 const mongoose = require('mongoose');
 
-
 const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/g;
 const phoneRegex = /^(1\s?)?(\d{3}|\(\d{3}\))[\s\-]?\d{3}[\s\-]?\d{4}$/g;
 
 module.exports = baseModel({
   name: 'SearchResult',
   data:{
-    location: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Location',
-      required: true
-    },
-    segment: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Segment',
-      required: true
-    },
-    search: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Search',
-      required: true
-    },
-    searchResult: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'SearchResult',
-      required: false
-    },
     url: {
       type: String,
       required: true,
       unique: true
+    },
+    location: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Location'
+    },
+    segment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Segment'
+    },
+    search: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Search'
+    },
+    searchResult: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'SearchResult'
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    video: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Video'
     },
     title: {
       type: String
@@ -46,13 +49,11 @@ module.exports = baseModel({
     html: {
       type: String
     },
-
     // The search result rank from Google
     rank: {
       type: Number,
       default: 1000
     },
-
     // Not used yet
     segmentScore: {
       type: Object,

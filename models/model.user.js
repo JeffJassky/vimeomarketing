@@ -1,14 +1,45 @@
 const baseModel = require('./base.model');
 const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi;
-const urlRegex = /\bhttps?:\/\/\S+/gi;
+const urlRegex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi;
+const SearchResult = require('./model.searchResult');
+
 const siteTypes = {
   Behance: 'behance.net',
   Instagram: 'instagram.com',
+  Vimeo: 'vimeo.com',
+  Tiktok: 'tiktok.com',
   Facebook: 'facebook.com',
   Dribbble: 'dribbble.com',
   Twitter: 'twitter.com',
   Tumblr: 'tumblr.com',
-  LinkedIn: 'linkedin.com'
+  LinkedIn: 'linkedin.com',
+  Youtube: 'youtube.com',
+  imdb: 'imdb.com',
+  bandcamp: 'bandcamp.com',
+  soundcloud: 'soundcloud.com',
+  mixcloud: 'mixcloud.com',
+  spotify: 'spotify.com',
+  apple: 'apple.com',
+  google: 'google.com',
+  amazon: 'amazon.com',
+  ebay: 'ebay.com',
+  pinterest: 'pinterest.com',
+  reddit: 'reddit.com',
+  wikipedia: 'wikipedia.org',
+  flickr: 'flickr.com',
+  flicker: 'flic.kr',
+  loopsfx: 'loopsfx.com',
+  myspace: 'myspace.com',
+  twitch: 'twitch.tv',
+  discord: 'discord.com',
+  deviantart: 'deviantart.com',
+  gofundme: 'gofundme.com',
+  kickstarter: 'kickstarter.com',
+  linktree: 'linktr.ee',
+  patreon: 'patreon.com',
+  paypal: 'paypal.com',
+  paypalme: 'paypal.me',
+  bitly: 'bit.ly',
 }
 
 const roleTypes = [
@@ -138,12 +169,20 @@ module.exports = baseModel({
     },
     allWebsites(){
       let foundUrls = [];
-      let allWebsites = [...this.websites];
+      let allWebsites = [...(this.websites || [])];
       if(this.bio){
-        (this.bio.match(urlRegex) || []).forEach(site => foundUrls.push(site))
+        (this.bio.match(urlRegex) || []).forEach(site => {
+          if(!site.includes("@")){
+            foundUrls.push(site)
+          }
+        })
       }
       if(this.short_bio){
-        (this.short_bio.match(urlRegex) || []).forEach(site => foundUrls.push(site))
+        (this.short_bio.match(urlRegex) || []).forEach(site => {
+          if(!site.includes("@")){
+            foundUrls.push(site)
+          }
+        })
       }
       if(foundUrls.length > 0){
         foundUrls.forEach(foundUrl => {
@@ -163,7 +202,7 @@ module.exports = baseModel({
               description: null
             };
             for(const siteTypeName in siteTypes){
-              if(foundUrl.indexOf(siteTypes[siteTypeName]) !== -1){
+              if(foundUrl.toLowerCase().indexOf(siteTypes[siteTypeName]) !== -1){
                 site.type = siteTypeName;
               }
             }
@@ -230,6 +269,28 @@ module.exports = baseModel({
         this.credits.push(newCredit);
       }
       await this.save();
+    },
+    async addWebsitesAsSearchResults(){
+      let addedSearchResults = [];
+      if(this.allWebsites.length > 0) {
+        for (const website of this.allWebsites) {
+          if (website.link && website.type === 'link') {
+            const existingSearchResult = await SearchResult.findOne({url: website.link});
+            if (!existingSearchResult) {
+              const newSearchResult = new SearchResult({
+                segment: "63964081733af0668e4b547d",
+                url: website.link,
+                user: this._id
+              });
+              await newSearchResult.save();
+              addedSearchResults.push(newSearchResult._id);
+            }
+          }
+        }
+      }
+      if(addedSearchResults.length > 0){
+        console.log('Added sites to crawl from users profile:', addedSearchResults);
+      }
     }
   },
   statics: {

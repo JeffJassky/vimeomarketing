@@ -17,7 +17,11 @@ module.exports = async function(job, done){
     if(searchResult){
         try{
 
-            const segment = await SegmentModel.findById(searchResult.segment);
+            let segment = await SegmentModel.findById(searchResult.segment);
+            if(!segment){
+                // Default to video production segment if segment is not found
+                segment = await SegmentModel.findOne();
+            }
             const agg = SearchModel.aggregate([
                 {
                     $match: { _id: searchResult.search }
@@ -43,17 +47,15 @@ module.exports = async function(job, done){
                 numOrganicResults = search[0].numOrganicResults;
                 googleResultIndex = search[0].googleResultIndex;
                 percentageInResults = Math.round(100 / numOrganicResults * googleResultIndex);
-            }else{
-                console.log('Search not found', search);
             }
             const searchableText = commonWords.removeCommonWords(`${searchResult.title} ${searchResult.url} ${searchResult.text}`);
-            searchResult.segmentScore = {
+
+            searchResult.segmentScore = Object.assign(searchResult.segmentScore,{
                 text: commonWords.countWords(searchableText, segment.positiveScoringWords, false),
                 description: commonWords.countWords(searchResult.description, segment.positiveScoringWords, false),
                 title: commonWords.countWords(searchResult.title, segment.positiveScoringWords, false),
-                url: commonWords.countWords(searchResult.url, segment.positiveScoringWords, false),
-                percentageInResults
-            }
+                url: commonWords.countWords(searchResult.url, segment.positiveScoringWords, false)
+            });
             searchResult.segmentScore.total = searchResult.segmentScore.text + searchResult.segmentScore.title + searchResult.segmentScore.url + searchResult.segmentScore.description;
             searchResult.rank = googleResultIndex;
             searchResult.status = 'fullscored';
